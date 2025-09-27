@@ -1,6 +1,6 @@
-import { NativeTabs, Icon, Label } from 'expo-router/unstable-native-tabs'
-import 'react-native-reanimated'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { Icon, Label, NativeTabs } from 'expo-router/unstable-native-tabs'
+import 'react-native-reanimated'
 
 export const unstable_settings = {
   anchor: '(tabs)',
