@@ -18,7 +18,7 @@ const queryClient = new QueryClient({
 export default function RootLayout() {
   return (
     <QueryClientProvider client={queryClient}>
-      <NativeTabs>
+      <NativeTabs style={{ backgroundColor: '#09090b' }}>
         <NativeTabs.Trigger name='live'>
           <Label>Live</Label>
           <Icon

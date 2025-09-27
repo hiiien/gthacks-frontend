@@ -4,7 +4,7 @@ import { AuthProvider } from '../contexts/AuthContext';
 
 function RootLayoutNav() {
   return (
-    <Stack screenOptions={{ headerShown: false }}>
+    <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: '#09090b' } }}>
       <Stack.Screen name="index" options={{ headerShown: false }} />
       <Stack.Screen name="landing" options={{ headerShown: false }} />
       <Stack.Screen name="login" options={{ headerShown: false }} />
