@@ -1,5 +1,6 @@
 import type { PropsWithChildren, ReactElement } from 'react';
-import { StyleSheet } from 'react-native';
+// 1. Import RefreshControlProps
+import { StyleSheet, type RefreshControlProps } from 'react-native';
 import Animated, {
   interpolate,
   useAnimatedRef,
@@ -16,7 +17,8 @@ const HEADER_HEIGHT = 250;
 type Props = PropsWithChildren<{
   headerImage: ReactElement;
   headerBackgroundColor: { dark: string; light: string };
-  refreshControl?: ReactElement;
+  // 2. Make the type more specific
+  refreshControl?: ReactElement<RefreshControlProps>; 
 }>;
 
 export default function ParallaxScrollView({
@@ -75,7 +77,7 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
-    padding: 32,
+    paddingHorizontal: 16,
     gap: 16,
     overflow: 'hidden',
   },
