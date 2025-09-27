@@ -11,6 +11,8 @@ import {
   View,
 } from 'react-native'
 
+import '../../global.css'
+
 import ParallaxScrollView from '@/components/parallax-scroll-view'
 import { IconSymbol } from '@/components/ui/icon-symbol'
 import { useThemeColor } from '@/hooks/use-theme-color'
