@@ -19,15 +19,7 @@ export default function RootLayout() {
 	return (
 		<QueryClientProvider client={queryClient}>
 			<NativeTabs>
-				<NativeTabs.Trigger name='index'>
-					<Label>Home</Label>
-					<Icon sf='house.fill' drawable='custom_android_drawable' />
-				</NativeTabs.Trigger>
-				<NativeTabs.Trigger name='explore'>
-					<Label>Explore</Label>
-					<Icon sf='magnifyingglass' drawable='custom_android_drawable' />
-				</NativeTabs.Trigger>
-					<NativeTabs.Trigger name='live'>
+				<NativeTabs.Trigger name='live'>
 					<Label>Live</Label>
 					<Icon sf='circle.circle' selectedColor='red' drawable='custom_android_drawable' />
 				</NativeTabs.Trigger>
