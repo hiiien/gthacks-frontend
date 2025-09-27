@@ -27,6 +27,10 @@ export default function RootLayout() {
 					<Label>Explore</Label>
 					<Icon sf='magnifyingglass' drawable='custom_android_drawable' />
 				</NativeTabs.Trigger>
+					<NativeTabs.Trigger name='live'>
+					<Label>Live</Label>
+					<Icon sf='circle.circle' selectedColor='red' drawable='custom_android_drawable' />
+				</NativeTabs.Trigger>
 				<NativeTabs.Trigger name='profile'>
 					<Icon sf='gear' drawable='custom_settings_drawable' />
 					<Label>Profile</Label>
