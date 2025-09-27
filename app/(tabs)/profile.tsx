@@ -1,6 +1,6 @@
 import { View, Text, Alert, Pressable } from 'react-native'
 
-import '../global.css'
+import '../../global.css'
 
 export default function ProfileScreen() {
   return (
