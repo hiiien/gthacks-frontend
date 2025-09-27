@@ -1,13 +1,13 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import {
+	ActivityIndicator,
 	FlatList,
 	StyleSheet,
 	Text,
 	View,
-	ActivityIndicator,
 } from 'react-native';
-import Svg, { Path } from 'react-native-svg';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import Svg, { Path } from 'react-native-svg';
 
 export type Post = {
 	id: number;
