@@ -1,163 +1,124 @@
-import { useEffect, useState } from 'react'
-import { FlatList, StyleSheet, Text, View } from 'react-native'
-import { ThemedText } from '@/components/themed-text'
-import { ThemedView } from '@/components/themed-view'
-import { SafeAreaView } from 'react-native-safe-area-context'
+import { useEffect, useState, useCallback } from 'react';
+import {
+	FlatList,
+	StyleSheet,
+	Text,
+	View,
+	ActivityIndicator,
+} from 'react-native';
+import Svg, { Path } from 'react-native-svg';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 export type Post = {
-  id: number
-  userName: string
-  title: string
-  text: string
-  over: number
-  under: number
-  hitPercent: number
-  repAmt: number
-}
-
-const testPosts: Post[] = [
-  {
-    id: 1,
-    userName: 'LanWen',
-    title: 'First Prediction',
-    text: 'I think the Lakers will win by 10 points tonight.',
-    over: 120,
-    under: 85,
-    hitPercent: 58,
-    repAmt: 12,
-  },
-  {
-    id: 2,
-    userName: 'JuliaK',
-    title: 'Stock Market Bet',
-    text: 'TSLA will close above $250 this Friday.',
-    over: 200,
-    under: 150,
-    hitPercent: 65,
-    repAmt: 25,
-  },
-  {
-    id: 3,
-    userName: 'Gavin',
-    title: 'Weather Wager',
-    text: 'It’ll rain in Atlanta tomorrow afternoon.',
-    over: 75,
-    under: 130,
-    hitPercent: 36,
-    repAmt: 8,
-  },
-  {
-    id: 4,
-    userName: 'SportsFan99',
-    title: 'NFL Sunday',
-    text: 'Eagles will beat the Cowboys by 7+ points.',
-    over: 310,
-    under: 280,
-    hitPercent: 52,
-    repAmt: 40,
-  },
-  {
-    id: 5,
-    userName: 'CryptoBro',
-    title: 'Bitcoin Call',
-    text: 'BTC will hit $75k before year end.',
-    over: 420,
-    under: 390,
-    hitPercent: 52,
-    repAmt: 100,
-  },
-  {
-    id: 6,
-    userName: 'LanWen',
-    title: 'First Prediction',
-    text: 'I think the Lakers will win by 10 points tonight.',
-    over: 120,
-    under: 85,
-    hitPercent: 58,
-    repAmt: 12,
-  },
-  {
-    id: 7,
-    userName: 'JuliaK',
-    title: 'Stock Market Bet',
-    text: 'TSLA will close above $250 this Friday.',
-    over: 200,
-    under: 150,
-    hitPercent: 65,
-    repAmt: 25,
-  },
-  {
-    id: 8,
-    userName: 'Gavin',
-    title: 'Weather Wager',
-    text: 'It’ll rain in Atlanta tomorrow afternoon.',
-    over: 75,
-    under: 130,
-    hitPercent: 36,
-    repAmt: 8,
-  },
-  {
-    id: 9,
-    userName: 'SportsFan99',
-    title: 'NFL Sunday',
-    text: 'Eagles will beat the Cowboys by 7+ points.',
-    over: 310,
-    under: 280,
-    hitPercent: 52,
-    repAmt: 40,
-  },
-  {
-    id: 10,
-    userName: 'CryptoBro',
-    title: 'Bitcoin Call',
-    text: 'BTC will hit $75k before year end.',
-    over: 420,
-    under: 390,
-    hitPercent: 52,
-    repAmt: 100,
-  },
-]
+	id: number;
+	hot: boolean;
+	userName: string;
+	title: string;
+	text: string;
+	over: number;
+	under: number;
+	hitPercent: number;
+	repAmt: number;
+};
 
 export default function Social() {
-  const [posts, setPosts] = useState<Post[]>([])
+	const [posts, setPosts] = useState<Post[]>([]);
+	const [page, setPage] = useState(1);
+	const [loading, setLoading] = useState(false);
+	const [hasMore, setHasMore] = useState(true);
 
-  useEffect(() => {
-    setPosts(testPosts)
-  }, [])
+	const fetchPosts = useCallback(async () => {
+		if (loading || !hasMore) return;
+		setLoading(true);
+		try {
+			const res = await fetch(
+				`https://jsonplaceholder.typicode.com/posts?_limit=10&_page=${page}`
+			);
+			const data: any[] = await res.json();
 
-  return (
-    <View className='h-screen bg-zinc-950'>
-      <SafeAreaView>
-        <FlatList
-          data={posts}
-          keyExtractor={(item) => item.id.toString()}
-          renderItem={({ item }) => <Card {...item} />}
-          contentContainerStyle={styles.list}
-        />
-      </SafeAreaView>
-    </View>
-  )
+			if (data.length < 10) setHasMore(false);
+
+			const mapped: Post[] = data.map((d) => ({
+				id: d.id,
+				hot: d.userId % 2 === 0,
+				userName: `User${d.userId}`,
+				title: d.title,
+				text: d.body,
+				over: Math.floor(Math.random() * 500),
+				under: Math.floor(Math.random() * 500),
+				hitPercent: Math.floor(Math.random() * 100),
+				repAmt: Math.floor(Math.random() * 100),
+			}));
+
+			setPosts((prev) => [...prev, ...mapped]);
+			setPage((prev) => prev + 1);
+		} catch (err) {
+			console.error(err);
+		} finally {
+			setLoading(false);
+		}
+	}, [page, loading, hasMore]);
+
+	useEffect(() => {
+		fetchPosts();
+	}, []);
+
+	return (
+		<View className="h-screen bg-zinc-950">
+			<SafeAreaView>
+				<FlatList
+					data={posts}
+					keyExtractor={(item) => item.id.toString()}
+					renderItem={({ item }) => <Card {...item} />}
+					contentContainerStyle={styles.list}
+					onEndReached={fetchPosts}
+					onEndReachedThreshold={0.5}
+					ListFooterComponent={
+						loading ? (
+							<ActivityIndicator size="small" color="white" style={{ margin: 12 }} />
+						) : null
+					}
+				/>
+			</SafeAreaView>
+		</View>
+	);
 }
 
-function Card({ userName, title, text }: Post) {
-  return (
-    <View className='bg-zinc-900 rounded-lg h-fit p-6 w-full flex flex-col gap-y-4 mb-4'>
-      <View className='rounded-lg flex flex-row items-center justify-between'>
-        <View className='flex flex-row items-center gap-x-2'>
-          <View className='w-12 h-12 rounded-full bg-zinc-500'></View>
-          <Text className='text-white font-medium text-lg'>@{userName}</Text>
-        </View>
-        <Text className='text-white font-semibold text-lg tracking-tight'>
-          {title}
-        </Text>
-      </View>
-      <Text className='text-zinc-300'>{text}</Text>
-    </View>
-  )
+function Card({ userName, title, text, hot }: Post) {
+	return (
+		<View className="bg-zinc-900 rounded-lg p-6 w-full flex flex-col gap-y-4 mb-4">
+			<View className="flex flex-row items-center justify-between">
+				<View className="flex flex-row items-center gap-x-2">
+					<View className="w-12 h-12 rounded-full bg-zinc-500" />
+					<Text className="text-white font-medium text-lg">@{userName}</Text>
+				</View>
+				<Text className="text-white font-semibold text-lg tracking-tight">
+					{title}
+				</Text>
+				{hot && (
+					<Svg
+						width="24"
+						height="24"
+						viewBox="0 0 24 24"
+						fill="none"
+						stroke="green"
+						strokeWidth={2}
+						strokeLinecap="round"
+						strokeLinejoin="round"
+						className="lucide lucide-trending-up-icon lucide-trending-up"
+					>
+						<Path d="M16 7h6v6" />
+						<Path d="m22 7-8.5 8.5-5-5L2 17" />
+					</Svg>
+				)}
+			</View>
+			<Text className="text-zinc-300">{text}</Text>
+		</View>
+	);
 }
 
 const styles = StyleSheet.create({
-  list: {
-    padding: 16,
-  },
-})
+	list: {
+		padding: 16,
+	},
+});
