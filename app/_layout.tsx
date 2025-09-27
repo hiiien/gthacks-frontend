@@ -14,7 +14,7 @@ export default function RootLayout() {
       </NativeTabs.Trigger>
       <NativeTabs.Trigger name='post'>
         <Label>Post</Label>
-        <Icon sf='paperplane.fill' drawable='custom_android_drawable' />
+        <Icon sf='magnifyingglass' drawable='custom_android_drawable' />
       </NativeTabs.Trigger>
       <NativeTabs.Trigger name='profile'>
         <Icon sf='gear' drawable='custom_settings_drawable' />
