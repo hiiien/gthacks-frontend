@@ -20,6 +20,10 @@ export default function RootLayout() {
 				<Icon sf='gear' drawable='custom_settings_drawable' />
 				<Label>Profile</Label>
 			</NativeTabs.Trigger>
+			<NativeTabs.Trigger name='social'>
+				<Icon sf='heart' drawable='custom_heart_drawable' />
+				<Label>Social</Label>
+			</NativeTabs.Trigger>
 		</NativeTabs>
 	)
 }
