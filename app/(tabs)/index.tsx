@@ -1,6 +1,8 @@
 import { View, Text, Alert, Pressable } from 'react-native'
 
-export default function ProfileScreen() {
+import '../../global.css'
+
+export default function Index() {
   return (
     <View className='h-screen bg-zinc-900 flex flex-col'>
       <View className='px-8 pt-20 pb-8 gap-y-6'>
