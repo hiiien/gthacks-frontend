@@ -26,15 +26,11 @@ export default function ProfileScreen() {
   };
 
   return (
-    <ScrollView className='flex-1 bg-gradient-to-b from-zinc-900 to-zinc-950'>
-      {/* Header Section */}
-      <View className='px-6 pt-16 pb-8'>
-        <View className='items-center mb-8'>
-          <View className='w-32 h-32 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 items-center justify-center mb-4 shadow-lg'>
-            <Text className='text-white text-4xl font-bold'>A</Text>
-          </View>
-          <Text className='text-white text-2xl font-bold mb-2'>@admin</Text>
-          <Text className='text-zinc-400 text-base'>Administrator</Text>
+    <View className='h-screen bg-zinc-900 flex flex-col'>
+      <View className='px-8 pt-20 pb-8 gap-y-6'>
+        <View className='flex flex-row items-end gap-x-4'>
+          <View className='w-24 h-24 rounded-lg bg-zinc-300'></View>
+          <Text className='text-zinc-50 text-3xl font-semibold'>@username</Text>
         </View>
 
         {/* Stats Cards */}
