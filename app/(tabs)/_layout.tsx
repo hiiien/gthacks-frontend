@@ -1,6 +1,6 @@
-import { NativeTabs, Icon, Label } from 'expo-router/unstable-native-tabs'
-import 'react-native-reanimated'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { Icon, Label, NativeTabs } from 'expo-router/unstable-native-tabs'
+import 'react-native-reanimated'
 
 export const unstable_settings = {
   anchor: '(tabs)',
@@ -23,22 +23,30 @@ export default function RootLayout() {
           <Label>Live</Label>
           <Icon
             sf='circle.circle'
-            selectedColor='red'
+            selectedColor='gold'
             drawable='custom_android_drawable'
           />
         </NativeTabs.Trigger>
         <NativeTabs.Trigger name='profile'>
-          <Icon sf='gear' drawable='custom_settings_drawable' />
+          <Icon
+            sf='gear'
+            selectedColor='gold'
+            drawable='custom_settings_drawable'
+          />
           <Label>Profile</Label>
         </NativeTabs.Trigger>
         <NativeTabs.Trigger name='social'>
-          <Icon sf='heart' drawable='custom_heart_drawable' />
+          <Icon
+            sf='heart'
+            selectedColor='gold'
+            drawable='custom_heart_drawable'
+          />
           <Label>Social</Label>
         </NativeTabs.Trigger>
-        <NativeTabs.Trigger name='stream/[id]' hidden={true}>
+        {/*<NativeTabs.Trigger name='stream/[id]' hidden={true}>
           <Icon sf='heart' drawable='custom_heart_drawable' />
           <Label>Stream</Label>
-        </NativeTabs.Trigger>
+        </NativeTabs.Trigger>*/}
       </NativeTabs>
     </QueryClientProvider>
   )
