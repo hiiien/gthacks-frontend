@@ -58,7 +58,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const login = async (email: string, password: string): Promise<boolean> => {
     try {
       const queryString = new URLSearchParams({ email, password }).toString()
-      const url = `http://${process.env.EXPO_PUBLIC_SERVER_IP}/user?${queryString}`
+      const url = `${process.env.EXPO_PUBLIC_SERVER_IP}/user?${queryString}`
       console.log(url)
 
       const response = await fetch(url, {
