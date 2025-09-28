@@ -68,10 +68,16 @@ export default function ProfileScreen() {
     fetchUser()
   }, [fetchUser])
 
-  if (!user || loading) {
+  if (!user || !loading) {
     return (
-      <View className='h-screen bg-zinc-950 flex items-center justify-center pt-20'>
+      <View className='h-screen bg-zinc-950 flex items-center justify-center pt-20 flex gap-y-6'>
         <ActivityIndicator size='large' color={'gold'} />
+        <Pressable
+          onPress={handleLogout}
+          className='bg-red-600 w-fit px-4 py-2 rounded-full flex items-center'
+        >
+          <Text className='text-white font-semibold text-base'>Logout</Text>
+        </Pressable>
       </View>
     )
   }
