@@ -114,6 +114,10 @@ export default function Stream() {
       setIsConnected(false)
     }
 
+    if (!isConnected) {
+      router.replace('/live')
+    }
+
     return () => {
       ws.current?.close()
     }
@@ -131,10 +135,6 @@ export default function Stream() {
       setMessages((prev) => [...prev, { userName, message, time: Date.now() }])
       setMessage('')
     }
-  }
-
-  if (!isConnected) {
-    router.replace('/live')
   }
 
   if (!room || !user || loading) {
