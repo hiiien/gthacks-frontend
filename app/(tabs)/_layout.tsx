@@ -23,22 +23,30 @@ export default function RootLayout() {
           <Label>Live</Label>
           <Icon
             sf='circle.circle'
-            selectedColor='red'
+            selectedColor='gold'
             drawable='custom_android_drawable'
           />
         </NativeTabs.Trigger>
         <NativeTabs.Trigger name='profile'>
-          <Icon sf='gear' drawable='custom_settings_drawable' />
+          <Icon
+            sf='gear'
+            selectedColor='gold'
+            drawable='custom_settings_drawable'
+          />
           <Label>Profile</Label>
         </NativeTabs.Trigger>
         <NativeTabs.Trigger name='social'>
-          <Icon sf='heart' drawable='custom_heart_drawable' />
+          <Icon
+            sf='heart'
+            selectedColor='gold'
+            drawable='custom_heart_drawable'
+          />
           <Label>Social</Label>
         </NativeTabs.Trigger>
-        <NativeTabs.Trigger name='stream/[id]' hidden={true}>
+        {/*<NativeTabs.Trigger name='stream/[id]' hidden={true}>
           <Icon sf='heart' drawable='custom_heart_drawable' />
           <Label>Stream</Label>
-        </NativeTabs.Trigger>
+        </NativeTabs.Trigger>*/}
       </NativeTabs>
     </QueryClientProvider>
   )
