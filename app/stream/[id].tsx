@@ -141,6 +141,7 @@ export default function Stream() {
           userName: userName,
           message: message,
           time: Date.now(),
+          type: 'message',
         }),
       )
       setMessages((prev) => [...prev, { userName, message, time: Date.now() }])
