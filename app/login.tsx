@@ -55,7 +55,7 @@ export default function LoginPage() {
             className='bg-zinc-900 color-white w-full p-4 rounded-md'
             value={email}
             onChangeText={setEmail}
-            placeholder='Username'
+            placeholder='Email'
             autoCapitalize='none'
             autoCorrect={false}
           />

@@ -4,6 +4,7 @@ import { useAuth } from '../../contexts/AuthContext'
 
 import '../../global.css'
 import { useCallback, useEffect, useState } from 'react'
+import { IconSymbol } from '@/components/ui/icon-symbol'
 
 export type User = {
 	id: number
@@ -82,6 +83,7 @@ export default function ProfileScreen() {
 		)
 	}
 
+<<<<<<< HEAD
 	return (
 		<View className='h-screen bg-zinc-900 flex flex-col'>
 			<View className='px-8 pt-20 pb-8 gap-y-6'>
@@ -107,6 +109,37 @@ export default function ProfileScreen() {
 						<Text className='text-white text-2xl font-bold'>45K</Text>
 					</View>
 				</View>
+=======
+  return (
+    <View className='h-screen bg-zinc-950 flex flex-col'>
+      <View className='px-8 pt-20 pb-8 gap-y-6'>
+        <View className='flex flex-row items-end gap-x-4'>
+          <View className='w-24 h-24 rounded-lg bg-yellow-500'></View>
+          <Text className='text-5xl font-extrabold text-zinc-100 tracking-wider'>
+            @{user.username}
+          </Text>
+        </View>
+
+        {/* Stats Cards */}
+        <View className='flex-row justify-between'>
+          <View className='flex items-start'>
+            <Text className='text-zinc-400 text-sm mb-1'>Rep</Text>
+            <Text className='text-white text-2xl font-bold'>
+              {user.repPoints}
+            </Text>
+          </View>
+          <View className='flex items-center'>
+            <Text className='text-zinc-400 text-sm mb-1'>
+              Lifetime Earnings
+            </Text>
+            <Text className='text-white text-2xl font-bold'>$1.2K</Text>
+          </View>
+          <View className='flex items-end'>
+            <Text className='text-zinc-400 text-sm mb-1'>Views</Text>
+            <Text className='text-white text-2xl font-bold'>45K</Text>
+          </View>
+        </View>
+>>>>>>> main
 
 				{/* Account Info Card */}
 				<View className='bg-zinc-800 rounded-xl p-6 mb-6'>
@@ -131,6 +164,7 @@ export default function ProfileScreen() {
 					</View>
 				</View>
 
+<<<<<<< HEAD
 				{/* Action Buttons */}
 				<View className='space-y-4'>
 					<Pressable
@@ -164,6 +198,43 @@ export default function ProfileScreen() {
 							Help & Support
 						</Text>
 					</Pressable>
+=======
+        {/* Action Buttons */}
+        <View className='space-y-4'>
+          <View className='flex flex-row items-center justify-between'>
+            <Pressable
+              onPress={() =>
+                Alert.alert(
+                  'Edit Profile',
+                  'Profile editing feature coming soon!',
+                )
+              }
+            >
+              <Text className='text-zinc-400'>Edit Profile</Text>
+              <IconSymbol name='pencil.line' size={32} color='white' />
+            </Pressable>
+
+            <Pressable
+              onPress={() =>
+                Alert.alert('Settings', 'Settings feature coming soon!')
+              }
+            >
+              <Text className='text-zinc-400'>Settings</Text>
+              <IconSymbol name='gear' size={32} color='white' />
+            </Pressable>
+
+            <Pressable
+              onPress={() => Alert.alert('Help', 'Help feature coming soon!')}
+            >
+              <Text className='text-zinc-400'>Help</Text>
+              <IconSymbol
+                name='questionmark.app.fill'
+                size={32}
+                color='white'
+              />
+            </Pressable>
+          </View>
+>>>>>>> main
 
 					<Pressable
 						onPress={handleLogout}
