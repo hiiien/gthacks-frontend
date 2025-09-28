@@ -145,7 +145,7 @@ export default function Stream() {
   }: {
     message?: string
     createBet?: {
-      id: number
+      id?: number
       title: string
       betLine: number
       startTime: string
@@ -209,6 +209,29 @@ export default function Stream() {
             type={item.type}
           />
         )}
+        ListHeaderComponent={
+          <View>
+            <Pressable
+              className='px-4 bg-yellow-500 w-full py-6 flex justify-center'
+              onPress={() =>
+                sendStructuredMessage({
+                  type: 'start-bet',
+                  createBet: {
+                    title: 'Tom Brady yards next play',
+                    betLine: 20,
+                    startTime: '2023-09-01T12:00:00Z',
+                  },
+                  bet: {
+                    over: 0,
+                    under: 0,
+                  },
+                })
+              }
+            >
+              <Text className='text-zinc-100 font-medium'>Send Bet</Text>
+            </Pressable>
+          </View>
+        }
         ListFooterComponent={
           <View className='flex flex-row items-center'>
             <TextInput
