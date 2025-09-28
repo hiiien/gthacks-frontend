@@ -97,8 +97,10 @@ export default function Stream() {
     fetchRoom(Number(id))
     fetchUser()
 
+    console.log(`wss://${process.env.EXPO_PUBLIC_WS_IP}/ws/room/${id}`)
+
     ws.current = new WebSocket(
-      `ws://${process.env.EXPO_PUBLIC_WS_IP}/ws/room/${id}`,
+      `wss://${process.env.EXPO_PUBLIC_WS_IP}/ws/room/${id}`,
     )
 
     ws.current.onopen = () => {
@@ -121,12 +123,21 @@ export default function Stream() {
     return () => {
       ws.current?.close()
     }
-  }, [id, fetchRoom])
+  }, [id, fetchRoom, fetchUser, isConnected, router])
+
+  if (!room || !user || loading) {
+    return (
+      <View className='h-screen bg-zinc-950 flex items-center justify-center pt-20'>
+        <ActivityIndicator size='large' color={'gold'} />
+      </View>
+    )
+  }
 
   const sendMessage = (userName: string, message: string) => {
     if (ws.current && message.trim()) {
       ws.current.send(
         JSON.stringify({
+          userId: user.id,
           userName: userName,
           message: message,
           time: Date.now(),
@@ -135,14 +146,6 @@ export default function Stream() {
       setMessages((prev) => [...prev, { userName, message, time: Date.now() }])
       setMessage('')
     }
-  }
-
-  if (!room || !user || loading) {
-    return (
-      <View className='h-screen bg-zinc-950 flex items-center justify-center pt-20'>
-        <ActivityIndicator size='large' color={'gold'} />
-      </View>
-    )
   }
 
   return (
