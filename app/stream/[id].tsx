@@ -2,315 +2,343 @@ import { useAuth } from '@/contexts/AuthContext'
 import { useLocalSearchParams, useRouter } from 'expo-router'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import {
-  FlatList,
-  TextInput,
-  View,
-  Text,
-  Pressable,
-  ActivityIndicator,
+	FlatList,
+	TextInput,
+	View,
+	Text,
+	Pressable,
+	ActivityIndicator,
 } from 'react-native'
 import { User } from '../(tabs)/profile'
 
 type Room = {
-  gameId: number
-  id: number
-  ownerId: number
-  title: string
-  viewCount: number
+	gameId: number
+	id: number
+	ownerId: number
+	title: string
+	viewCount: number
 }
 
 type message = {
-  userId: number
-  userName: string
-  type: string
-  timeStamp: string
-  betType?: string
-  message?: string
-  createBet?: createBet
-  bet?: bet
+	userId: number
+	userName: string
+	type: string
+	timeStamp: string
+	betType?: string
+	message?: string
+	createBet?: createBet
+	bet?: bet
 }
 
 type createBet = {
-  id: number
-  title: string
-  betLine: number
-  startTime: string
+	id: number
+	title: string
+	betLine: number
+	startTime: string
 }
 
 type bet = {
-  over: number
-  under: number
+	over: number
+	under: number
 }
 
 export default function Stream() {
-  const { id } = useLocalSearchParams()
-  const [isConnected, setIsConnected] = useState<boolean>(true)
-  const [messageInput, setMessageInput] = useState<string>('')
-  const [loading, setLoading] = useState<boolean>(false)
-  const [room, setRoom] = useState<Room | null>()
-  const [user, setUser] = useState<User | null>()
-  const [messages, setMessages] = useState<StreamMessageProps[]>([])
-  const ws = useRef<WebSocket | null>(null)
-  const router = useRouter()
-  const { getUser } = useAuth()
+	const { id } = useLocalSearchParams()
+	const [isConnected, setIsConnected] = useState<boolean>(true)
+	const [messageInput, setMessageInput] = useState<string>('')
+	const [loading, setLoading] = useState<boolean>(false)
+	const [room, setRoom] = useState<Room | null>()
+	const [user, setUser] = useState<User | null>()
+	const [messages, setMessages] = useState<StreamMessageProps[]>([])
+	const ws = useRef<WebSocket | null>(null)
+	const router = useRouter()
+	const { getUser } = useAuth()
+	const [low, setLow] = useState<number>(0)
+	const [high, setHigh] = useState<number>(0)
 
-  const fetchRoom = useCallback(async (roomId: number) => {
-    setLoading(true)
-    console.log('loading room')
-    const response = await fetch(
-      `${process.env.EXPO_PUBLIC_SERVER_IP}/room/${roomId}`,
-      {
-        method: 'GET',
-        headers: {
-          Accept: 'application/json',
-          'Content-Type': 'application/json',
-        },
-      },
-    )
-    const data = await response.json()
-    console.log(data.room)
-    setRoom(data.room)
-    setLoading(false)
-  }, [])
+	const fetchRoom = useCallback(async (roomId: number) => {
+		setLoading(true)
+		const response = await fetch(
+			`${process.env.EXPO_PUBLIC_SERVER_IP}/room/${roomId}`,
+			{
+				method: 'GET',
+				headers: {
+					Accept: 'application/json',
+					'Content-Type': 'application/json',
+				},
+			},
+		)
+		const data = await response.json()
+		setRoom(data.room)
+		setLoading(false)
+	}, [])
 
-  const fetchUser = useCallback(async () => {
-    setLoading(true)
-    console.log('loading user')
+	const fetchUser = useCallback(async () => {
+		setLoading(true)
+		const getUserRes = await getUser()
+		if (!getUserRes) {
+			setLoading(false)
+			return
+		}
 
-    const getUserRes = await getUser()
-    if (!getUserRes) {
-      setLoading(false)
-      return
-    }
+		const response = await fetch(
+			`${process.env.EXPO_PUBLIC_SERVER_IP}/user/${getUserRes.userId}`,
+			{
+				method: 'GET',
+				headers: {
+					Accept: 'application/json',
+					'Content-Type': 'application/json',
+				},
+			},
+		)
+		const data = await response.json()
+		setUser(data.user)
+		setLoading(false)
+	}, [getUser])
 
-    const response = await fetch(
-      `${process.env.EXPO_PUBLIC_SERVER_IP}/user/${getUserRes.userId}`,
-      {
-        method: 'GET',
-        headers: {
-          Accept: 'application/json',
-          'Content-Type': 'application/json',
-        },
-      },
-    )
-    const data = await response.json()
+	useEffect(() => {
+		fetchRoom(Number(id))
+		fetchUser()
 
-    setUser(data.user)
-    setLoading(false)
-  }, [getUser])
+		ws.current = new WebSocket(
+			`wss://${process.env.EXPO_PUBLIC_WS_IP}/ws/room/${id}`,
+		)
 
-  useEffect(() => {
-    fetchRoom(Number(id))
-    fetchUser()
+		ws.current.onopen = () => setIsConnected(true)
 
-    ws.current = new WebSocket(
-      `wss://${process.env.EXPO_PUBLIC_WS_IP}/ws/room/${id}`,
-    )
+		ws.current.onmessage = (event) => {
+			const message = JSON.parse(event.data)
+			if (message.type === 'bet-updates') {
+				setLow(message.under) // match your backend keys
+				setHigh(message.over)
+				return
+			}
+			setMessages((prev) => [...prev, message])
+		}
 
-    ws.current.onopen = () => {
-      setIsConnected(true)
-    }
+		ws.current.onclose = () => setIsConnected(false)
 
-    ws.current.onmessage = (event) => {
-      const message = JSON.parse(event.data)
-      setMessages((prev) => [...prev, message])
-    }
+		if (!isConnected) {
+			router.replace('/live')
+		}
 
-    ws.current.onclose = () => {
-      setIsConnected(false)
-    }
+		return () => {
+			ws.current?.close()
+		}
+	}, [id, fetchRoom, fetchUser, isConnected, router])
 
-    if (!isConnected) {
-      router.replace('/live')
-    }
+	if (!room || !user || loading) {
+		return (
+			<View className="h-screen bg-zinc-950 flex items-center justify-center pt-20">
+				<ActivityIndicator size="large" color={'gold'} />
+			</View>
+		)
+	}
 
-    return () => {
-      ws.current?.close()
-    }
-  }, [id, fetchRoom, fetchUser, isConnected, router])
+	const sendStructuredMessage = ({
+		message,
+		createBet,
+		bet,
+		type,
+		betType,
+	}: {
+		message?: string
+		createBet?: {
+			id?: number
+			title: string
+			betLine: number
+			startTime: string
+		}
+		bet?: {
+			over: number
+			under: number
+		}
+		type: 'message' | 'start-bet' | 'bet'
+		betType?: 'over' | 'under'
+	}) => {
+		if (ws.current) {
+			if (type === 'message') {
+				ws.current.send(
+					JSON.stringify({
+						type: 'message',
+						userId: user.id,
+						userName: user.username,
+						message: message,
+						timeStamp: Date.now(),
+					}),
+				)
+			}
 
-  if (!room || !user || loading) {
-    return (
-      <View className='h-screen bg-zinc-950 flex items-center justify-center pt-20'>
-        <ActivityIndicator size='large' color={'gold'} />
-      </View>
-    )
-  }
+			if (type === 'start-bet') {
+				ws.current.send(
+					JSON.stringify({
+						type: 'start-bet',
+						userId: user.id,
+						userName: user.username,
+						createBet,
+						bet,
+						timeStamp: new Date().toISOString(),
+					}),
+				)
+			}
 
-  const sendStructuredMessage = ({
-    message,
-    createBet,
-    bet,
-    type,
-  }: {
-    message?: string
-    createBet?: {
-      id?: number
-      title: string
-      betLine: number
-      startTime: string
-    }
-    bet?: {
-      over: number
-      under: number
-    }
-    type: 'message' | 'start-bet'
-  }) => {
-    if (ws.current) {
-      if (type === 'message') {
-        ws.current.send(
-          JSON.stringify({
-            type: 'message',
-            userId: user.id,
-            userName: user.username,
-            message: message,
-            timeStamp: Date.now(),
-          }),
-        )
-      }
+			if (type === 'bet') {
+				ws.current.send(
+					JSON.stringify({
+						type: 'bet',
+						userId: user.id,
+						userName: user.username,
+						betType: betType,
+						timeStamp: new Date().toISOString(),
+					}),
+				)
+			}
+		}
 
-      if (type === 'start-bet') {
-        ws.current.send(
-          JSON.stringify({
-            type: 'start-bet',
-            userId: user.id,
-            userName: user.username,
-            createBet,
-            bet,
-            timeStamp: new Date().toISOString(),
-          }),
-        )
-      }
-    }
+		setMessageInput('')
+	}
 
-    setMessageInput('')
-  }
-
-  return (
-    <View className='h-screen bg-zinc-950 flex flex-col'>
-      <View className='pt-24 pb-8 px-8 border-b-[1px] border-zinc-900 flex flex-row items-center gap-x-4'>
-        <View className='w-3 h-3 bg-red-500 rounded-xl'></View>
-        <Text className='text-4xl font-extrabold text-zinc-100 tracking-wide'>
-          {room.title}
-        </Text>
-      </View>
-      <FlatList
-        automaticallyAdjustKeyboardInsets={true}
-        keyboardShouldPersistTaps='always'
-        data={messages}
-        keyExtractor={(_, index) => index.toString()}
-        renderItem={({ item }) => (
-          <StreamMessage
-            userName={item.userName}
-            message={item.message}
-            createBet={item.createBet}
-            bet={item.bet}
-            timeStamp={item.timeStamp}
-            type={item.type}
-          />
-        )}
-        ListHeaderComponent={
-          <View>
-            <Pressable
-              className='px-4 bg-yellow-500 w-full py-6 flex justify-center'
-              onPress={() =>
-                sendStructuredMessage({
-                  type: 'start-bet',
-                  createBet: {
-                    title: 'Tom Brady yards next play',
-                    betLine: 20,
-                    startTime: '2023-09-01T12:00:00Z',
-                  },
-                  bet: {
-                    over: 0,
-                    under: 0,
-                  },
-                })
-              }
-            >
-              <Text className='text-zinc-100 font-medium'>Send Bet</Text>
-            </Pressable>
-          </View>
-        }
-        ListFooterComponent={
-          <View className='flex flex-row items-center'>
-            <TextInput
-              className='bg-zinc-900 color-white py-6 px-4 flex-grow'
-              value={messageInput}
-              onChangeText={setMessageInput}
-              placeholder='Type a message...'
-            />
-            <Pressable
-              className='px-4 bg-yellow-500 py-6 flex justify-center'
-              onPress={() =>
-                sendStructuredMessage({
-                  type: 'message',
-                  message: messageInput,
-                })
-              }
-            >
-              <Text className='text-zinc-100 font-medium'>Send</Text>
-            </Pressable>
-          </View>
-        }
-      />
-    </View>
-  )
+	return (
+		<View className="h-screen bg-zinc-950 flex flex-col">
+			<View className="pt-24 pb-8 px-8 border-b-[1px] border-zinc-900 flex flex-row items-center gap-x-4">
+				<View className="w-3 h-3 bg-red-500 rounded-xl"></View>
+				<Text className="text-4xl font-extrabold text-zinc-100 tracking-wide">
+					{room.title}
+				</Text>
+			</View>
+			<FlatList
+				automaticallyAdjustKeyboardInsets={true}
+				keyboardShouldPersistTaps="always"
+				data={messages}
+				keyExtractor={(_, index) => index.toString()}
+				renderItem={({ item }) => (
+					<StreamMessage
+						userName={item.userName}
+						message={item.message}
+						createBet={item.createBet}
+						bet={item.bet}
+						timeStamp={item.timeStamp}
+						type={item.type}
+						onSend={sendStructuredMessage}
+						low={low}
+						high={high}
+					/>
+				)}
+				ListHeaderComponent={
+					<View>
+						<Pressable
+							className="px-4 bg-yellow-500 w-full py-6 flex justify-center"
+							onPress={() =>
+								sendStructuredMessage({
+									type: 'start-bet',
+									createBet: {
+										title: 'Tom Brady yards next play',
+										betLine: 20,
+										startTime: '2023-09-01T12:00:00Z',
+									},
+									bet: { over: 0, under: 0 },
+								})
+							}
+						>
+							<Text className="text-zinc-100 font-medium">Send Bet</Text>
+						</Pressable>
+					</View>
+				}
+				ListFooterComponent={
+					<View className="flex flex-row items-center">
+						<TextInput
+							className="bg-zinc-900 color-white py-6 px-4 flex-grow"
+							value={messageInput}
+							onChangeText={setMessageInput}
+							placeholder="Type a message..."
+						/>
+						<Pressable
+							className="px-4 bg-yellow-500 py-6 flex justify-center"
+							onPress={() =>
+								sendStructuredMessage({ type: 'message', message: messageInput })
+							}
+						>
+							<Text className="text-zinc-100 font-medium">Send</Text>
+						</Pressable>
+					</View>
+				}
+			/>
+		</View>
+	)
 }
 
 type StreamMessageProps = {
-  userName: string
-  message?: string
-  createBet?: createBet
-  bet?: bet
-  timeStamp: number
-  type: string
+	userName: string
+	message?: string
+	createBet?: createBet
+	bet?: bet
+	timeStamp: number
+	type: string
+	onSend: (args: {
+		type: 'message' | 'start-bet' | 'bet'
+		message?: string
+		createBet?: createBet
+		bet?: bet
+		betType?: 'over' | 'under'
+	}) => void
+	low: number
+	high: number
 }
 
 function StreamMessage({
-  userName,
-  message,
-  createBet,
-  bet,
-  timeStamp,
-  type,
+	userName,
+	message,
+	createBet,
+	timeStamp,
+	type,
+	onSend,
+	low,
+	high,
 }: StreamMessageProps) {
-  if (type === 'message') {
-    return (
-      <View className='w-full flex flex-row items-center gap-x-4 rounded-lg py-8 px-2'>
-        <View className='w-16 h-16 bg-yellow-500 rounded-md'></View>
-        <View className='flex flex-col gap-y-2'>
-          <View className='flex flex-row items-end gap-x-2'>
-            <Text className='text-zinc-100'>@{userName}</Text>
-            <Text className='text-zinc-500 text-xs'>
-              {new Date(timeStamp).toLocaleTimeString()}
-            </Text>
-          </View>
-          <Text className='text-zinc-100 text-xl font-medium'>{message}</Text>
-        </View>
-      </View>
-    )
-  }
+	if (type === 'message') {
+		return (
+			<View className="w-full flex flex-row items-center gap-x-4 rounded-lg py-8 px-2">
+				<View className="w-16 h-16 bg-yellow-500 rounded-md"></View>
+				<View className="flex flex-col gap-y-2">
+					<View className="flex flex-row items-end gap-x-2">
+						<Text className="text-zinc-100">@{userName}</Text>
+						<Text className="text-zinc-500 text-xs">
+							{new Date(timeStamp).toLocaleTimeString()}
+						</Text>
+					</View>
+					<Text className="text-zinc-100 text-xl font-medium">{message}</Text>
+				</View>
+			</View>
+		)
+	}
 
-  if (type === 'start-bet') {
-    return (
-      <View className='bg-yellow-500 w-full py-8 px-8'>
-        <View className='flex flex-col gap-y-2'>
-          <Text className='text-zinc-100'>QuickBet</Text>
-          <Text className='text-3xl text-zinc-100 font-medium tracking-tight'>
-            {createBet?.title}
-          </Text>
-          <Text className='text-white'>OVER / UNDER: {createBet?.betLine}</Text>
-          <View className='flex flex-row justify-between gap-x-2'>
-            <Pressable className='bg-zinc-900 py-2 px-8 flex items-center rounded-md'>
-              <Text className='text-zinc-100'>-</Text>
-            </Pressable>
-            <Pressable className='bg-zinc-900 py-2 px-8 flex items-center rounded-md'>
-              <Text className='text-zinc-100'>+</Text>
-            </Pressable>
-          </View>
-        </View>
-      </View>
-    )
-  }
+	if (type === 'start-bet') {
+		return (
+			<View className="bg-yellow-500 w-full py-8 px-8">
+				<View className="flex flex-col gap-y-2">
+					<Text className="text-zinc-100">QuickBet</Text>
+					<Text className="text-3xl text-zinc-100 font-medium tracking-tight">
+						{createBet?.title}
+					</Text>
+					<Text className="text-white">OVER / UNDER: {createBet?.betLine}</Text>
+					<View className="flex flex-row justify-between gap-x-2 mt-2">
+						<Pressable
+							onPress={() => onSend({ type: 'bet', betType: 'under' })}
+							className="bg-zinc-900 py-2 px-8 flex items-center rounded-md"
+						>
+							<Text className="text-zinc-100">Under ({low}%)</Text>
+						</Pressable>
+						<Pressable
+							onPress={() => onSend({ type: 'bet', betType: 'over' })}
+							className="bg-zinc-900 py-2 px-8 flex items-center rounded-md"
+						>
+							<Text className="text-zinc-100">Over ({high}%)</Text>
+						</Pressable>
+					</View>
+				</View>
+			</View>
+		)
+	}
+
+	return null
 }
