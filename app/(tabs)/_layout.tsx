@@ -19,34 +19,26 @@ export default function RootLayout() {
   return (
     <QueryClientProvider client={queryClient}>
       <NativeTabs>
-        <NativeTabs.Trigger name='live'>
+        <NativeTabs.Trigger name="live">
           <Label>Live</Label>
-          <Icon
-            sf='circle.circle'
-            selectedColor='gold'
-            drawable='custom_android_drawable'
-          />
+          <Icon sf="circle.circle" selectedColor="gold" drawable="custom_android_drawable" />
         </NativeTabs.Trigger>
-        <NativeTabs.Trigger name='profile'>
-          <Icon
-            sf='gear'
-            selectedColor='gold'
-            drawable='custom_settings_drawable'
-          />
+
+        <NativeTabs.Trigger name="profile">
+          <Icon sf="gear" selectedColor="gold" drawable="custom_settings_drawable" />
           <Label>Profile</Label>
         </NativeTabs.Trigger>
-        <NativeTabs.Trigger name='social'>
-          <Icon
-            sf='heart'
-            selectedColor='gold'
-            drawable='custom_heart_drawable'
-          />
+
+        <NativeTabs.Trigger name="social">
+          <Icon sf="heart" selectedColor="gold" drawable="custom_heart_drawable" />
           <Label>Social</Label>
         </NativeTabs.Trigger>
-        {/*<NativeTabs.Trigger name='stream/[id]' hidden={true}>
-          <Icon sf='heart' drawable='custom_heart_drawable' />
-          <Label>Stream</Label>
-        </NativeTabs.Trigger>*/}
+
+        {/* Hidden route so router.push('/(tabs)/streamerLive') works from a button */}
+        <NativeTabs.Trigger name="streamerLive" hidden>
+          <Icon sf="video.fill" drawable="custom_video_drawable" />
+          <Label>Go Live</Label>
+        </NativeTabs.Trigger>
       </NativeTabs>
     </QueryClientProvider>
   )
