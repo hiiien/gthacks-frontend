@@ -10,12 +10,14 @@ import React, {
 type AsyncUser = {
   userId: number
   username: string
+  repPoints: number | null
 }
 
 interface AuthContextType {
   isAuthenticated: boolean
   login: (email: string, password: string) => Promise<boolean>
   getUser: () => Promise<AsyncUser | null>
+  refreshUser: () => Promise<void>
   logout: () => Promise<void>
   isLoading: boolean
 }
@@ -55,31 +57,44 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const login = async (email: string, password: string): Promise<boolean> => {
     try {
-      const queryString = new URLSearchParams({
-        email,
-        password,
-      }).toString()
+      const queryString = new URLSearchParams({ email, password }).toString()
+      const url = `http://${process.env.EXPO_PUBLIC_SERVER_IP}/user?${queryString}`
+      console.log(url)
 
-      console.log(
-        `http://${process.env.EXPO_PUBLIC_SERVER_IP}/user?${queryString}`,
-      )
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: { Accept: 'application/json', 'Content-Type': 'application/json' },
+      })
 
-      const response = await fetch(
-        `http://${process.env.EXPO_PUBLIC_SERVER_IP}/user?${queryString}`,
-        {
-          method: 'GET',
-          headers: {
-            Accept: 'application/json',
-            'Content-Type': 'application/json',
-          },
-        },
-      )
-      const data = await response.json()
+      // If your server can sometimes send text, guard this parse:
+      const contentType = response.headers.get('content-type') || ''
+      const data = contentType.includes('application/json')
+        ? await response.json()
+        : { user: null }
 
       if (data.user) {
         await AsyncStorage.setItem('authToken', 'authenticated')
         await AsyncStorage.setItem('userId', String(data.user.id))
         await AsyncStorage.setItem('username', data.user.username)
+
+        // repPoints from login if provided
+        if (typeof data.user.repPoints === 'number') {
+          await AsyncStorage.setItem('repPoints', String(data.user.repPoints))
+        } else {
+          // Hydrate repPoints once if login didn’t return it
+          try {
+            const res2 = await fetch(`http://${process.env.EXPO_PUBLIC_SERVER_IP}/user/${data.user.id}`, {
+              headers: { Accept: 'application/json' },
+            })
+            const ct2 = res2.headers.get('content-type') || ''
+            const data2 = ct2.includes('application/json') ? await res2.json() : {}
+            const rp = data2?.user?.repPoints
+            if (typeof rp === 'number') {
+              await AsyncStorage.setItem('repPoints', String(rp))
+            }
+          } catch {}
+        }
+
         setIsAuthenticated(true)
         return true
       }
@@ -95,15 +110,34 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       const token = await AsyncStorage.getItem('authToken')
       const userId = await AsyncStorage.getItem('userId')
       const username = await AsyncStorage.getItem('username')
+      const repPointsStr = await AsyncStorage.getItem('repPoints')
       if (!token || !userId || !username) return null
 
       return {
-        userId: parseInt(userId),
+        userId: parseInt(userId, 10),
         username,
+        repPoints: repPointsStr != null ? Number(repPointsStr) : null,
       }
     } catch (error) {
       console.error('Get user error:', error)
       return null
+    }
+  }
+
+  const refreshUser = async () => {
+    try {
+      const user = await getUser()
+      if (!user) return
+      const res = await fetch(`http://${process.env.EXPO_PUBLIC_SERVER_IP}/user/${user.userId}`, {
+        headers: { Accept: 'application/json' },
+      })
+      const ct = res.headers.get('content-type') || ''
+      const data = ct.includes('application/json') ? await res.json() : {}
+      const rp = data?.user?.repPoints
+      if (typeof rp === 'number') {
+        await AsyncStorage.setItem('repPoints', String(rp))
+      }
+    } catch (e) {
     }
   }
 
@@ -112,6 +146,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       await AsyncStorage.removeItem('authToken')
       await AsyncStorage.removeItem('userId')
       await AsyncStorage.removeItem('username')
+      await AsyncStorage.removeItem('repPoints')
       setIsAuthenticated(false)
     } catch (error) {
       console.error('Logout error:', error)
@@ -122,6 +157,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     isAuthenticated,
     login,
     getUser,
+    refreshUser,
     logout,
     isLoading,
   }

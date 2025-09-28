@@ -1,16 +1,9 @@
-import { Href, useRouter } from 'expo-router' // Import Href
-import React, { useCallback, useEffect, useState } from 'react'
-import {
-  ActivityIndicator,
-  FlatList,
-  Pressable,
-  Text,
-  View,
-} from 'react-native'
-
-import '../../global.css'
-
 import { IconSymbol } from '@/components/ui/icon-symbol'
+import { Href, useRouter } from 'expo-router'
+import React, { useCallback, useEffect, useState } from 'react'
+import { ActivityIndicator, FlatList, Pressable, Text, View } from 'react-native'
+import { useAuth } from '../../contexts/AuthContext'
+import '../../global.css'
 
 type FilterType = 'hot' | 'following'
 
@@ -22,6 +15,12 @@ type Stream = {
     viewCount: number
   }
   owner: {
+    id: number
+    username: string
+    email: string
+    repPoints: number
+  }
+  user: {
     id: number
     username: string
     email: string
@@ -45,7 +44,7 @@ const StreamCard = ({
 
   return (
     <Pressable onPress={handlePress}>
-      {({ pressed }) => (
+      {() => (
         <View
           className={`mb-6 pb-6 px-4 border-b-[1px] border-zinc-900 flex flex-col gap-y-6 ${index === 0 ? 'pt-8' : ''} ${index === streamsLength - 1 ? 'pb-64' : ''}`}
         >
@@ -59,12 +58,12 @@ const StreamCard = ({
           </View>
           <View className='flex flex-row items-center justify-between'>
             <View className='flex flex-row gap-x-3 items-center'>
-              <View className='w-12 h-12 bg-yellow-500 rounded-xl'></View>
+              <View className='w-12 h-12 bg-yellow-500 rounded-xl' />
               <View>
                 <Text className='text-zinc-100 text-xl font-medium'>
                   @{item.owner.username}
                 </Text>
-                <Text className='text-zinc-500'>
+                <Text className='text-zinc-50'>
                   {item.owner.repPoints} Rep
                 </Text>
               </View>
@@ -83,8 +82,12 @@ const StreamCard = ({
 }
 
 export default function LiveScreen() {
+  const router = useRouter()
+  const { getUser, refreshUser } = useAuth()
+
   const [streams, setStreams] = useState<Stream[]>([])
   const [isLoading, setIsLoading] = useState(true)
+  const [repPoints, setRepPoints] = useState<number | null>(null)
 
   const fetchStreams = useCallback(async (filter: FilterType) => {
     setIsLoading(true)
@@ -99,11 +102,9 @@ export default function LiveScreen() {
       },
     )
     const data = await response.json()
-
     if (filter === 'following') {
       setStreams(data.rooms)
     } else {
-      // default to 'hot'
       setStreams(data.rooms)
     }
     setIsLoading(false)
@@ -113,6 +114,14 @@ export default function LiveScreen() {
     fetchStreams('following')
   }, [fetchStreams])
 
+  useEffect(() => {
+    ;(async () => {
+      await refreshUser()
+      const u = await getUser()
+      setRepPoints(u?.repPoints ?? null)
+    })()
+  }, [getUser, refreshUser])
+
   if (isLoading) {
     return (
       <View className='h-screen bg-zinc-950 flex items-center justify-center pt-20'>
@@ -121,13 +130,24 @@ export default function LiveScreen() {
     )
   }
 
+  const canGoLive = (repPoints ?? 0) >= 1000
+
+  const handleGoLive = () => {
+    router.push('/go-live' as Href)
+  }
+
   return (
     <View className='h-screen bg-zinc-950 flex flex-col'>
       <View className='pt-24 pb-8 px-8 border-b-[1px] border-zinc-900 flex flex-row items-center gap-x-4'>
-        <View className='w-3 h-3 bg-red-500 rounded-xl'></View>
+        <View className='w-3 h-3 bg-red-500 rounded-xl' />
         <Text className='text-4xl font-extrabold text-zinc-100 tracking-wide'>
           Live Streams
         </Text>
+        {canGoLive && (
+          <Pressable onPress={handleGoLive} className='rounded-xl bg-blue-600 px-4 py-2 ml-auto'>
+            <Text className='text-white text-center font-semibold'>go live</Text>
+          </Pressable>
+        )}
       </View>
       <View className='bg-zinc-950 flex-grow'>
         <FlatList
