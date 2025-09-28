@@ -53,9 +53,16 @@ export default function ProfileScreen() {
       },
     )
     const data = await response.json()
+
+    if (!data.user) {
+      setLoading(false)
+      await logout()
+      return
+    }
+
     setUser(data.user)
     setLoading(false)
-  }, [])
+  }, [getUser])
 
   useEffect(() => {
     fetchUser()
