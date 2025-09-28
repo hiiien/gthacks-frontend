@@ -64,17 +64,17 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 				`https://${process.env.EXPO_PUBLIC_SERVER_IP}/user?${queryString}`,
 			)
 
-			const response = await fetch(
-				`https://${process.env.EXPO_PUBLIC_SERVER_IP}/user?${queryString}`,
-				{
-					method: 'GET',
-					headers: {
-						Accept: 'application/json',
-						'Content-Type': 'application/json',
-					},
-				},
-			)
-			const data = await response.json()
+      const response = await fetch(
+        `${process.env.EXPO_PUBLIC_SERVER_IP}/user?${queryString}`,
+        {
+          method: 'GET',
+          headers: {
+            Accept: 'application/json',
+            'Content-Type': 'application/json',
+          },
+        },
+      )
+      const data = await response.json()
 
 			if (data.user) {
 				await AsyncStorage.setItem('authToken', 'authenticated')
