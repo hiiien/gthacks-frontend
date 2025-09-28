@@ -4,6 +4,7 @@ import { useAuth } from '../../contexts/AuthContext'
 
 import '../../global.css'
 import { useCallback, useEffect, useState } from 'react'
+import { IconSymbol } from '@/components/ui/icon-symbol'
 
 export type User = {
   id: number
@@ -43,7 +44,7 @@ export default function ProfileScreen() {
     }
 
     const response = await fetch(
-      `http://${process.env.EXPO_PUBLIC_SERVER_IP}/user/${getUserRes.userId}`,
+      `${process.env.EXPO_PUBLIC_SERVER_IP}/user/${getUserRes.userId}`,
       {
         method: 'GET',
         headers: {
@@ -83,26 +84,30 @@ export default function ProfileScreen() {
   }
 
   return (
-    <View className='h-screen bg-zinc-900 flex flex-col'>
+    <View className='h-screen bg-zinc-950 flex flex-col'>
       <View className='px-8 pt-20 pb-8 gap-y-6'>
         <View className='flex flex-row items-end gap-x-4'>
-          <View className='w-24 h-24 rounded-lg bg-zinc-300'></View>
-          <Text className='text-zinc-50 text-3xl font-semibold'>
+          <View className='w-24 h-24 rounded-lg bg-yellow-500'></View>
+          <Text className='text-5xl font-extrabold text-zinc-100 tracking-wider'>
             @{user.username}
           </Text>
         </View>
 
         {/* Stats Cards */}
-        <View className='flex-row justify-between mb-8'>
-          <View className='flex-1 bg-zinc-800 rounded-xl p-4 mr-2'>
-            <Text className='text-zinc-400 text-sm mb-1'>Streams</Text>
-            <Text className='text-white text-2xl font-bold'>12</Text>
+        <View className='flex-row justify-between'>
+          <View className='flex items-start'>
+            <Text className='text-zinc-400 text-sm mb-1'>Rep</Text>
+            <Text className='text-white text-2xl font-bold'>
+              {user.repPoints}
+            </Text>
           </View>
-          <View className='flex-1 bg-zinc-800 rounded-xl p-4 mx-1'>
-            <Text className='text-zinc-400 text-sm mb-1'>Followers</Text>
-            <Text className='text-white text-2xl font-bold'>1.2K</Text>
+          <View className='flex items-center'>
+            <Text className='text-zinc-400 text-sm mb-1'>
+              Lifetime Earnings
+            </Text>
+            <Text className='text-white text-2xl font-bold'>$1.2K</Text>
           </View>
-          <View className='flex-1 bg-zinc-800 rounded-xl p-4 ml-2'>
+          <View className='flex items-end'>
             <Text className='text-zinc-400 text-sm mb-1'>Views</Text>
             <Text className='text-white text-2xl font-bold'>45K</Text>
           </View>
@@ -131,39 +136,40 @@ export default function ProfileScreen() {
           </View>
         </View>
 
-        {/* Action Buttons */}
         <View className='space-y-4'>
-          <Pressable
-            onPress={() =>
-              Alert.alert(
-                'Edit Profile',
-                'Profile editing feature coming soon!',
-              )
-            }
-            className='bg-blue-600 w-full py-4 rounded-xl flex items-center shadow-lg'
-          >
-            <Text className='text-white font-semibold text-base'>
-              Edit Profile
-            </Text>
-          </Pressable>
+          <View className='flex flex-row items-center justify-between'>
+            <Pressable
+              onPress={() =>
+                Alert.alert(
+                  'Edit Profile',
+                  'Profile editing feature coming soon!',
+                )
+              }
+            >
+              <Text className='text-zinc-400'>Edit Profile</Text>
+              <IconSymbol name='pencil.line' size={32} color='white' />
+            </Pressable>
 
-          <Pressable
-            onPress={() =>
-              Alert.alert('Settings', 'Settings feature coming soon!')
-            }
-            className='bg-zinc-700 w-full py-4 rounded-xl flex items-center'
-          >
-            <Text className='text-white font-semibold text-base'>Settings</Text>
-          </Pressable>
+            <Pressable
+              onPress={() =>
+                Alert.alert('Settings', 'Settings feature coming soon!')
+              }
+            >
+              <Text className='text-zinc-400'>Settings</Text>
+              <IconSymbol name='gear' size={32} color='white' />
+            </Pressable>
 
-          <Pressable
-            onPress={() => Alert.alert('Help', 'Help feature coming soon!')}
-            className='bg-zinc-700 w-full py-4 rounded-xl flex items-center'
-          >
-            <Text className='text-white font-semibold text-base'>
-              Help & Support
-            </Text>
-          </Pressable>
+            <Pressable
+              onPress={() => Alert.alert('Help', 'Help feature coming soon!')}
+            >
+              <Text className='text-zinc-400'>Help</Text>
+              <IconSymbol
+                name='questionmark.app.fill'
+                size={32}
+                color='white'
+              />
+            </Pressable>
+          </View>
 
           <Pressable
             onPress={handleLogout}

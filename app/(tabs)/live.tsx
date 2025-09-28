@@ -85,10 +85,23 @@ export default function LiveScreen() {
 	const router = useRouter()
 	const { getUser, refreshUser } = useAuth()
 
+<<<<<<< HEAD
 	const [streams, setStreams] = useState<Stream[]>([])
 	const [isLoading, setIsLoading] = useState(true)
 	const [repPoints, setRepPoints] = useState<number | null>(null)
 	const [isNavigating, setIsNavigating] = useState(false)
+=======
+  const fetchStreams = useCallback(async (filter: FilterType) => {
+    setIsLoading(true)
+    const response = await fetch(`${process.env.EXPO_PUBLIC_SERVER_IP}/rooms`, {
+      method: 'GET',
+      headers: {
+        Accept: 'application/json',
+        'Content-Type': 'application/json',
+      },
+    })
+    const data = await response.json()
+>>>>>>> main
 
 	const fetchStreams = useCallback(async (filter: FilterType) => {
 		try {
