@@ -6,10 +6,8 @@ import {
 	Text,
 	View,
 	Pressable,
-	Modal,
-	ScrollView,
+	TextInput,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import Svg, { Path } from 'react-native-svg';
 
 export type Post = {
@@ -24,82 +22,183 @@ export type Post = {
 	repAmt: number;
 };
 
+const games = [
+	"Lakers vs Celtics",
+	"Chiefs vs 49ers",
+	"Real Madrid vs Barcelona",
+	"Yankees vs Red Sox",
+	"Serena vs Osaka",
+	"Messi vs Ronaldo",
+	"Novak vs Nadal",
+	"Arsenal vs Man City",
+];
+
+const comments = [
+	"This one’s going to be wild!",
+	"No way the under hits here.",
+	"Lock of the century 🔒",
+	"I’m riding with the over tonight.",
+	"Rep line looks too good to be true.",
+	"This game will come down to the wire.",
+	"Over bettors sweating already 😅",
+	"Defense wins championships, I’m taking the under.",
+];
+
+function generateFakePosts(page: number, limit: number): Post[] {
+	return Array.from({ length: limit }, (_, i) => {
+		const id = (page - 1) * limit + i + 1;
+		const overPercent = Math.floor(Math.random() * 100);
+		const underPercent = 100 - overPercent;
+
+		return {
+			id,
+			hot: Math.random() > 0.5,
+			userName: `User${Math.floor(Math.random() * 1000)}`,
+			title: games[Math.floor(Math.random() * games.length)],
+			text: comments[Math.floor(Math.random() * comments.length)],
+			over: overPercent,
+			under: underPercent,
+			hitPercent: Math.floor(Math.random() * 100),
+			repAmt: Math.floor(Math.random() * 5000),
+		};
+	});
+}
+
 export default function Social() {
 	const [posts, setPosts] = useState<Post[]>([]);
 	const [page, setPage] = useState(1);
 	const [loading, setLoading] = useState(false);
 	const [hasMore, setHasMore] = useState(true);
-	const [showModal, setShowModal] = useState(false);
 
-	const handlePress = () => {
-		setShowModal(true);
-	};
+	// Inputs for new post
+	const [title, setTitle] = useState("");
+	const [text, setText] = useState("");
+	const [over, setOver] = useState("");
+	const [under, setUnder] = useState("");
 
 	const fetchPosts = useCallback(async () => {
 		if (loading || !hasMore) return;
 		setLoading(true);
-		try {
-			const res = await fetch(
-				`https://jsonplaceholder.typicode.com/posts?_limit=10&_page=${page}`
-			);
-			const data: any[] = await res.json();
 
-			if (data.length < 10) setHasMore(false);
+		const newPosts = generateFakePosts(page, 10);
+		if (newPosts.length < 10) setHasMore(false);
 
-			const mapped: Post[] = data.map((d) => ({
-				id: d.id,
-				hot: d.userId % 2 === 0,
-				userName: `User${d.userId}`,
-				title: d.title,
-				text: d.body,
-				over: Math.floor(Math.random() * 500),
-				under: Math.floor(Math.random() * 500),
-				hitPercent: Math.floor(Math.random() * 100),
-				repAmt: Math.floor(Math.random() * 100),
-			}));
-
-			setPosts((prev) => [...prev, ...mapped]);
-			setPage((prev) => prev + 1);
-		} catch (err) {
-			console.error(err);
-		} finally {
-			setLoading(false);
-		}
+		setPosts((prev) => [...prev, ...newPosts]);
+		setPage((prev) => prev + 1);
+		setLoading(false);
 	}, [page, loading, hasMore]);
 
 	useEffect(() => {
 		fetchPosts();
 	}, []);
 
+	const handleAddPost = () => {
+		if (!title.trim() || !text.trim()) return;
+
+		let overPercent = parseInt(over) || 0;
+		if (overPercent > 100) overPercent = 100;
+		if (overPercent < 0) overPercent = 0;
+		const underPercent = 100 - overPercent;
+
+		const newPost: Post = {
+			id: posts.length + 1,
+			hot: Math.random() > 0.5,
+			userName: "You",
+			title,
+			text,
+			over: overPercent,
+			under: underPercent,
+			hitPercent: Math.floor(Math.random() * 100),
+			repAmt: Math.floor(Math.random() * 5000),
+		};
+
+		setPosts([newPost, ...posts]); // add to top
+		setTitle("");
+		setText("");
+		setOver("");
+		setUnder("");
+	};
+
 	return (
-		<>
-			<View className='h-screen bg-zinc-950 flex flex-col'>
-				<Pressable onPress={handlePress} className='pt-24 pb-8 px-8 border-b-[1px] border-zinc-800 flex flex-row items-center gap-x-4'>
-					<Text className='text-4xl font-extrabold text-zinc-100 tracking-wide'>
-						Make Post
-					</Text>
-				</Pressable>
-				<View className="flex-grow bg-zinc-950">
-					<FlatList
-						data={posts}
-						keyExtractor={(item) => item.id.toString()}
-						renderItem={({ item }) => <Card {...item} />}
-						contentContainerStyle={styles.list}
-						onEndReached={fetchPosts}
-						onEndReachedThreshold={0.5}
-						ListFooterComponent={
-							loading ? (
-								<ActivityIndicator size="small" color="white" style={{ margin: 12 }} />
-							) : null
-						}
+		<View className="h-screen bg-zinc-950 flex flex-col">
+			{/* Compose box */}
+			<View className="pt-24 pb-6 px-8 border-b border-zinc-800 flex flex-col gap-y-4">
+				<Text className="text-3xl font-extrabold text-zinc-100 tracking-wide">
+					Make Post
+				</Text>
+
+				<TextInput
+					value={title}
+					onChangeText={setTitle}
+					placeholder="Game Title (e.g. Lakers vs Celtics)"
+					placeholderTextColor="#9ca3af"
+					className="bg-zinc-800 text-white px-3 py-2 rounded-lg"
+				/>
+
+				<TextInput
+					value={text}
+					onChangeText={setText}
+					placeholder="Your comment"
+					placeholderTextColor="#9ca3af"
+					className="bg-zinc-800 text-white px-3 py-2 rounded-lg"
+					multiline
+				/>
+
+				<View className="flex flex-row gap-x-4">
+					<TextInput
+						value={over}
+						onChangeText={(val) => {
+							setOver(val);
+							const num = parseInt(val) || 0;
+							setUnder((100 - num).toString());
+						}}
+						placeholder="Over %"
+						placeholderTextColor="#9ca3af"
+						keyboardType="numeric"
+						className="flex-1 bg-zinc-800 text-white px-3 py-2 rounded-lg"
+					/>
+					<TextInput
+						value={under}
+						editable={false}
+						placeholder="Under %"
+						placeholderTextColor="#9ca3af"
+						className="flex-1 bg-zinc-800 text-white px-3 py-2 rounded-lg opacity-70"
 					/>
 				</View>
+
+				<Pressable
+					onPress={handleAddPost}
+					className="bg-yellow-500 py-2 px-4 rounded-lg self-end"
+				>
+					<Text className="text-black font-bold">Submit</Text>
+				</Pressable>
 			</View>
-		</>
+
+			{/* Feed */}
+			<View className="flex-grow bg-zinc-950">
+				<FlatList
+					data={posts}
+					keyExtractor={(item) => item.id.toString()}
+					renderItem={({ item }) => <Card {...item} />}
+					contentContainerStyle={styles.list}
+					onEndReached={fetchPosts}
+					onEndReachedThreshold={0.5}
+					ListFooterComponent={
+						loading ? (
+							<ActivityIndicator
+								size="small"
+								color="white"
+								style={{ margin: 12 }}
+							/>
+						) : null
+					}
+				/>
+			</View>
+		</View>
 	);
 }
 
-function Card({ userName, title, text, hot }: Post) {
+function Card({ userName, title, text, hot, over, under, repAmt }: Post) {
 	return (
 		<View className="bg-zinc-900 rounded-lg p-6 w-full flex flex-col gap-y-4 mb-4">
 			<View className="flex flex-row items-center justify-between">
@@ -120,7 +219,6 @@ function Card({ userName, title, text, hot }: Post) {
 						strokeWidth={2}
 						strokeLinecap="round"
 						strokeLinejoin="round"
-						className="lucide lucide-trending-up-icon lucide-trending-up"
 					>
 						<Path d="M16 7h6v6" />
 						<Path d="m22 7-8.5 8.5-5-5L2 17" />
@@ -128,6 +226,11 @@ function Card({ userName, title, text, hot }: Post) {
 				)}
 			</View>
 			<Text className="text-zinc-300">{text}</Text>
+			<View className="flex flex-row justify-between mt-2">
+				<Text className="text-green-400">Over: {over}%</Text>
+				<Text className="text-red-400">Under: {under}%</Text>
+				<Text className="text-yellow-400">{repAmt} Rep</Text>
+			</View>
 		</View>
 	);
 }
