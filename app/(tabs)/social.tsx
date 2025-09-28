@@ -73,37 +73,6 @@ export default function Social() {
 
 	return (
 		<>
-			{showModal && (
-				<Modal
-					animationType="fade"
-					transparent
-					visible={showModal}
-					onRequestClose={() => setShowModal(false)}
-				>
-					{/* backdrop */}
-					<View className="flex-1 bg-black/70 justify-center items-center">
-						{/* modal card */}
-						<View className="bg-zinc-900 rounded-2xl p-6 w-11/12 max-h-[80%]">
-							<ScrollView showsVerticalScrollIndicator={false}>
-								<Text className="text-white text-xl font-bold mb-4">
-									New Post
-								</Text>
-								<Text className="text-zinc-300 mb-6">
-									Here’s where your form or content goes.
-								</Text>
-								{/* …inputs or other content */}
-							</ScrollView>
-
-							<Pressable
-								onPress={() => setShowModal(false)}
-								className="bg-zinc-800 py-2 px-4 rounded-lg self-end mt-4"
-							>
-								<Text className="text-white font-medium">Close</Text>
-							</Pressable>
-						</View>
-					</View>
-				</Modal>
-			)}
 			<View className='h-screen bg-zinc-950 flex flex-col'>
 				<Pressable onPress={handlePress} className='pt-24 pb-8 px-8 border-b-[1px] border-zinc-800 flex flex-row items-center gap-x-4'>
 					<Text className='text-4xl font-extrabold text-zinc-100 tracking-wide'>
