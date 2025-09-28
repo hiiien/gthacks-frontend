@@ -5,6 +5,7 @@ import {
 	StyleSheet,
 	Text,
 	View,
+	Pressable,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Svg, { Path } from 'react-native-svg';
@@ -64,23 +65,30 @@ export default function Social() {
 	}, []);
 
 	return (
-		<View className="h-screen bg-zinc-950">
-			<SafeAreaView>
-				<FlatList
-					data={posts}
-					keyExtractor={(item) => item.id.toString()}
-					renderItem={({ item }) => <Card {...item} />}
-					contentContainerStyle={styles.list}
-					onEndReached={fetchPosts}
-					onEndReachedThreshold={0.5}
-					ListFooterComponent={
-						loading ? (
-							<ActivityIndicator size="small" color="white" style={{ margin: 12 }} />
-						) : null
-					}
-				/>
-			</SafeAreaView>
-		</View>
+		<>
+			<View className='h-screen bg-zinc-950 flex flex-col'>
+				<Pressable className='pt-24 pb-8 px-8 border-b-[1px] border-zinc-800 flex flex-row items-center gap-x-4'>
+					<Text className='text-4xl font-extrabold text-zinc-100 tracking-wide'>
+						Make Post
+					</Text>
+				</Pressable>
+				<View className="flex-grow bg-zinc-950">
+					<FlatList
+						data={posts}
+						keyExtractor={(item) => item.id.toString()}
+						renderItem={({ item }) => <Card {...item} />}
+						contentContainerStyle={styles.list}
+						onEndReached={fetchPosts}
+						onEndReachedThreshold={0.5}
+						ListFooterComponent={
+							loading ? (
+								<ActivityIndicator size="small" color="white" style={{ margin: 12 }} />
+							) : null
+						}
+					/>
+				</View>
+			</View>
+		</>
 	);
 }
 
