@@ -2,11 +2,28 @@ import { useLocalSearchParams } from 'expo-router'
 import { useEffect, useRef, useState } from 'react'
 import { FlatList, TextInput, View, Text, Pressable } from 'react-native'
 
-export default function Stream({ userName }: { userName: string }) {
+type message = {
+	userId: number
+	userName: string
+	type: string
+	timeStamp: string
+	message?: string
+	bet?: bet
+}
+
+type bet = {
+	id: number
+	title: string,
+	betLine: number,
+	startTime: string,
+}
+
+export default function Stream({ userId, userName }: { userId: number, userName: string }) {
 	const { id } = useLocalSearchParams()
 	const [isConnected, setIsConnected] = useState<boolean>(false)
 	const [message, setMessage] = useState<string>("")
 	const [messages, setMessages] = useState<StreamMessageProps[]>([])
+	const [bet, setBet] = useState<message | null>(null)
 	const ws = useRef<WebSocket | null>(null)
 
 
@@ -31,17 +48,15 @@ export default function Stream({ userName }: { userName: string }) {
 		}
 	}, [id])
 
-	const sendMessage = (userName: string, message: string) => {
+	const sendMessage = (outMessage: message) => {
 		if (ws.current && message.trim()) {
 			ws.current.send(
-				JSON.stringify({
-					userName: userName,
-					message: message,
-					time: Date.now(),
-				})
+				JSON.stringify(outMessage)
 			)
-			setMessages((prev) => [...prev, { userName, message, time: Date.now() }])
-			setMessage("")
+			if (outMessage.type === "message") {
+				setMessages((prev) => [...prev, { userName, message, time: Date.now() }])
+				setMessage("")
+			}
 		}
 	}
 	return (
@@ -71,11 +86,11 @@ export default function Stream({ userName }: { userName: string }) {
 					<StreamMessage
 						userName={item.userName}
 						message={item.message}
-						time={item.time}   // ✅ pass number
+						time={item.time}
 					/>
 				)}
 			/>
-			<Pressable onPress={() => sendMessage(userName, message)}>
+			<Pressable onPress={() => sendMessage({ userId: userId, userName: userName, type: "message", timeStamp: Date.now().toLocaleString(), message })}>
 				<Text style={{ color: "white" }}>Send</Text>
 			</Pressable>
 		</>
