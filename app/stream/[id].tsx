@@ -98,7 +98,7 @@ export default function Stream() {
     fetchUser()
 
     ws.current = new WebSocket(
-      `ws://${process.env.EXPO_PUBLIC_SERVER_IP}/ws/room/${id}`,
+      `ws://${process.env.EXPO_PUBLIC_WS_IP}/ws/room/${id}`,
     )
 
     ws.current.onopen = () => {
