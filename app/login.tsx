@@ -4,29 +4,27 @@ import {
   ActivityIndicator,
   Alert,
   Pressable,
-  StyleSheet,
   Text,
   TextInput,
-  TouchableOpacity,
   View,
 } from 'react-native'
 import { useAuth } from '../contexts/AuthContext'
 
 export default function LoginPage() {
-  const [username, setUsername] = useState('')
+  const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const { login } = useAuth()
 
   const handleLogin = async () => {
-    if (!username.trim() || !password.trim()) {
+    if (!email.trim() || !password.trim()) {
       Alert.alert('Error', 'Please enter both username and password')
       return
     }
 
     setIsLoading(true)
     try {
-      const success = await login(username.trim(), password.trim())
+      const success = await login(email.trim(), password.trim())
       if (success) {
         router.replace('/(tabs)/live')
       } else {
@@ -55,8 +53,8 @@ export default function LoginPage() {
         <View className='w-full flex flex-col gap-y-4'>
           <TextInput
             className='bg-zinc-900 color-white w-full p-4 rounded-md'
-            value={username}
-            onChangeText={setUsername}
+            value={email}
+            onChangeText={setEmail}
             placeholder='Username'
             autoCapitalize='none'
             autoCorrect={false}

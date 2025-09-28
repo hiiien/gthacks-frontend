@@ -115,7 +115,7 @@ export default function LiveScreen() {
 
   if (isLoading) {
     return (
-      <View className='flex-1 items-center justify-center pt-20'>
+      <View className='h-screen bg-zinc-950 flex items-center justify-center pt-20'>
         <ActivityIndicator size='large' color={'gold'} />
       </View>
     )

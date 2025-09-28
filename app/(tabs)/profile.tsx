@@ -1,36 +1,82 @@
-import { router } from 'expo-router';
-import { Alert, Pressable, ScrollView, Text, View } from 'react-native';
-import { useAuth } from '../../contexts/AuthContext';
+import { router } from 'expo-router'
+import { ActivityIndicator, Alert, Pressable, Text, View } from 'react-native'
+import { useAuth } from '../../contexts/AuthContext'
 
-import '../../global.css';
+import '../../global.css'
+import { useCallback, useEffect, useState } from 'react'
+
+export type User = {
+  id: number
+  username: string
+  email: string
+  repPoints: number
+}
 
 export default function ProfileScreen() {
-  const { logout } = useAuth();
+  const { logout, getUser } = useAuth()
+
+  const [loading, setLoading] = useState(false)
+  const [user, setUser] = useState<User | null>()
 
   const handleLogout = () => {
-    Alert.alert(
-      'Logout',
-      'Are you sure you want to logout?',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        { 
-          text: 'Logout', 
-          style: 'destructive',
-          onPress: async () => {
-            await logout();
-            router.replace('/landing');
-          }
-        }
-      ]
-    );
-  };
+    Alert.alert('Logout', 'Are you sure you want to logout?', [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Logout',
+        style: 'destructive',
+        onPress: async () => {
+          await logout()
+          router.replace('/landing')
+        },
+      },
+    ])
+  }
+
+  const fetchUser = useCallback(async () => {
+    setLoading(true)
+    console.log('loading user')
+
+    const getUserRes = await getUser()
+    if (!getUserRes) {
+      setLoading(false)
+      return
+    }
+
+    const response = await fetch(
+      `http://${process.env.EXPO_PUBLIC_SERVER_IP}/user/${getUserRes.userId}`,
+      {
+        method: 'GET',
+        headers: {
+          Accept: 'application/json',
+          'Content-Type': 'application/json',
+        },
+      },
+    )
+    const data = await response.json()
+    setUser(data.user)
+    setLoading(false)
+  }, [])
+
+  useEffect(() => {
+    fetchUser()
+  }, [fetchUser])
+
+  if (!user || loading) {
+    return (
+      <View className='h-screen bg-zinc-950 flex items-center justify-center pt-20'>
+        <ActivityIndicator size='large' color={'gold'} />
+      </View>
+    )
+  }
 
   return (
     <View className='h-screen bg-zinc-900 flex flex-col'>
       <View className='px-8 pt-20 pb-8 gap-y-6'>
         <View className='flex flex-row items-end gap-x-4'>
           <View className='w-24 h-24 rounded-lg bg-zinc-300'></View>
-          <Text className='text-zinc-50 text-3xl font-semibold'>@username</Text>
+          <Text className='text-zinc-50 text-3xl font-semibold'>
+            @{user.username}
+          </Text>
         </View>
 
         {/* Stats Cards */}
@@ -51,7 +97,9 @@ export default function ProfileScreen() {
 
         {/* Account Info Card */}
         <View className='bg-zinc-800 rounded-xl p-6 mb-6'>
-          <Text className='text-white text-lg font-semibold mb-4'>Account Information</Text>
+          <Text className='text-white text-lg font-semibold mb-4'>
+            Account Information
+          </Text>
           <View className='space-y-3'>
             <View className='flex-row justify-between items-center'>
               <Text className='text-zinc-400'>Status</Text>
@@ -73,26 +121,37 @@ export default function ProfileScreen() {
         {/* Action Buttons */}
         <View className='space-y-4'>
           <Pressable
-            onPress={() => Alert.alert('Edit Profile', 'Profile editing feature coming soon!')}
+            onPress={() =>
+              Alert.alert(
+                'Edit Profile',
+                'Profile editing feature coming soon!',
+              )
+            }
             className='bg-blue-600 w-full py-4 rounded-xl flex items-center shadow-lg'
           >
-            <Text className='text-white font-semibold text-base'>Edit Profile</Text>
+            <Text className='text-white font-semibold text-base'>
+              Edit Profile
+            </Text>
           </Pressable>
-          
+
           <Pressable
-            onPress={() => Alert.alert('Settings', 'Settings feature coming soon!')}
+            onPress={() =>
+              Alert.alert('Settings', 'Settings feature coming soon!')
+            }
             className='bg-zinc-700 w-full py-4 rounded-xl flex items-center'
           >
             <Text className='text-white font-semibold text-base'>Settings</Text>
           </Pressable>
-          
+
           <Pressable
             onPress={() => Alert.alert('Help', 'Help feature coming soon!')}
             className='bg-zinc-700 w-full py-4 rounded-xl flex items-center'
           >
-            <Text className='text-white font-semibold text-base'>Help & Support</Text>
+            <Text className='text-white font-semibold text-base'>
+              Help & Support
+            </Text>
           </Pressable>
-          
+
           <Pressable
             onPress={handleLogout}
             className='bg-red-600 w-full py-4 rounded-xl flex items-center shadow-lg mt-6'
@@ -101,6 +160,6 @@ export default function ProfileScreen() {
           </Pressable>
         </View>
       </View>
-    </ScrollView>
+    </View>
   )
 }
