@@ -104,7 +104,7 @@ export default function Stream() {
     fetchUser()
 
     ws.current = new WebSocket(
-      `ws://${process.env.EXPO_PUBLIC_WS_IP}/ws/room/${id}`,
+      `wss://${process.env.EXPO_PUBLIC_WS_IP}/ws/room/${id}`,
     )
 
     ws.current.onopen = () => {
@@ -135,21 +135,6 @@ export default function Stream() {
         <ActivityIndicator size='large' color={'gold'} />
       </View>
     )
-  }
-
-  const sendMessage = (userName: string, message: string, type: string) => {
-    if (ws.current && message.trim()) {
-      ws.current.send(
-        JSON.stringify({
-          userId: user.id,
-          userName: userName,
-          message: message,
-          time: Date.now(),
-          type,
-        }),
-      )
-      setMessageInput('')
-    }
   }
 
   const sendStructuredMessage = ({
