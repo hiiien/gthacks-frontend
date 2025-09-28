@@ -44,39 +44,38 @@ const StreamCard = ({
 
 	return (
 		<Pressable onPress={handlePress}>
-			{() => (
-				<View
-					className={`mb-6 pb-6 px-4 border-b-[1px] border-zinc-900 flex flex-col gap-y-6 ${index === 0 ? 'pt-8' : ''} ${index === streamsLength - 1 ? 'pb-64' : ''}`}
-				>
-					<View className='flex-grow flex items-center'>
-						<Text className='text-zinc-100 text-3xl font-medium tracking-tight'>
-							{item.room.title}
-						</Text>
-						<Text className='text-zinc-500 text-xl font-medium tracking-wide'>
-							{item.room.gameTitle}
-						</Text>
-					</View>
-					<View className='flex flex-row items-center justify-between'>
-						<View className='flex flex-row gap-x-3 items-center'>
-							<View className='w-12 h-12 bg-yellow-500 rounded-xl' />
-							<View>
-								<Text className='text-zinc-100 text-xl font-medium'>
-									@{item.owner.username}
-								</Text>
-								<Text className='text-zinc-50'>
-									{item.owner.repPoints} Rep
-								</Text>
-							</View>
-						</View>
-						<View className='flex flex-row items-center gap-x-3'>
-							<Text className='text-zinc-100 text-lg font-medium'>
-								{item.room.viewCount}
+			<View
+				className={`mb-6 pb-6 px-4 border-b-[1px] border-zinc-900 flex flex-col gap-y-6 ${index === 0 ? 'pt-8' : ''
+					} ${index === streamsLength - 1 ? 'pb-64' : ''}`}
+			>
+				<View className='flex-grow flex items-center'>
+					<Text className='text-zinc-100 text-3xl font-medium tracking-tight'>
+						{item.room.title}
+					</Text>
+					<Text className='text-zinc-500 text-xl font-medium tracking-wide'>
+						{item.room.gameTitle}
+					</Text>
+				</View>
+				<View className='flex flex-row items-center justify-between'>
+					<View className='flex flex-row gap-x-3 items-center'>
+						<View className='w-12 h-12 bg-yellow-500 rounded-xl' />
+						<View>
+							<Text className='text-zinc-100 text-xl font-medium'>
+								@{item.owner.username}
 							</Text>
-							<IconSymbol name='eye.fill' size={18} color='white' />
+							<Text className='text-zinc-50'>
+								{item.owner.repPoints} Rep
+							</Text>
 						</View>
+					</View>
+					<View className='flex flex-row items-center gap-x-3'>
+						<Text className='text-zinc-100 text-lg font-medium'>
+							{item.room.viewCount}
+						</Text>
+						<IconSymbol name='eye.fill' size={18} color='white' />
 					</View>
 				</View>
-			)}
+			</View>
 		</Pressable>
 	)
 }
@@ -85,48 +84,31 @@ export default function LiveScreen() {
 	const router = useRouter()
 	const { getUser, refreshUser } = useAuth()
 
-<<<<<<< HEAD
 	const [streams, setStreams] = useState<Stream[]>([])
 	const [isLoading, setIsLoading] = useState(true)
 	const [repPoints, setRepPoints] = useState<number | null>(null)
 	const [isNavigating, setIsNavigating] = useState(false)
-=======
-  const fetchStreams = useCallback(async (filter: FilterType) => {
-    setIsLoading(true)
-    const response = await fetch(`${process.env.EXPO_PUBLIC_SERVER_IP}/rooms`, {
-      method: 'GET',
-      headers: {
-        Accept: 'application/json',
-        'Content-Type': 'application/json',
-      },
-    })
-    const data = await response.json()
->>>>>>> main
 
 	const fetchStreams = useCallback(async (filter: FilterType) => {
-		try {
-			setIsLoading(true)
-			const response = await fetch(
-				`http://${process.env.EXPO_PUBLIC_SERVER_IP}/rooms`,
-				{
-					method: 'GET',
-					headers: {
-						Accept: 'application/json',
-						'Content-Type': 'application/json',
-					},
-				},
-			)
-			const data = await response.json()
-			setStreams(Array.isArray(data?.rooms) ? data.rooms : [])
-		} finally {
-			setIsLoading(false)
-		}
+		setIsLoading(true)
+		const response = await fetch(`${process.env.EXPO_PUBLIC_SERVER_IP}/rooms`, {
+			method: 'GET',
+			headers: {
+				Accept: 'application/json',
+				'Content-Type': 'application/json',
+			},
+		})
+		const data = await response.json()
+		setStreams(data.rooms ?? [])
+		setIsLoading(false)
 	}, [])
 
+	// ✅ fetch streams on mount
 	useEffect(() => {
 		fetchStreams('following')
 	}, [fetchStreams])
 
+	// ✅ refresh user on mount
 	useEffect(() => {
 		; (async () => {
 			await refreshUser()
@@ -161,9 +143,12 @@ export default function LiveScreen() {
 					<Pressable
 						onPress={handleGoLive}
 						disabled={isNavigating}
-						className={`rounded-xl px-4 py-2 ml-auto ${isNavigating ? 'bg-blue-400' : 'bg-blue-600'}`}
+						className={`rounded-xl px-4 py-2 ml-auto ${isNavigating ? 'bg-blue-400' : 'bg-blue-600'
+							}`}
 					>
-						<Text className='text-white text-center font-semibold'>go live</Text>
+						<Text className='text-white text-center font-semibold'>
+							go live
+						</Text>
 					</Pressable>
 				)}
 			</View>
