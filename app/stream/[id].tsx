@@ -1,3 +1,4 @@
+import { useAuth } from '@/contexts/AuthContext'
 import { useLocalSearchParams, useRouter } from 'expo-router'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import {
@@ -8,6 +9,7 @@ import {
   Pressable,
   ActivityIndicator,
 } from 'react-native'
+import { User } from '../(tabs)/profile'
 
 type Room = {
   gameId: number
@@ -17,15 +19,17 @@ type Room = {
   viewCount: number
 }
 
-export default function Stream({ userName }: { userName: string }) {
+export default function Stream() {
   const { id } = useLocalSearchParams()
   const [isConnected, setIsConnected] = useState<boolean>(true)
   const [message, setMessage] = useState<string>('')
   const [loading, setLoading] = useState<boolean>(false)
   const [room, setRoom] = useState<Room | null>()
+  const [user, setUser] = useState<User | null>()
   const [messages, setMessages] = useState<StreamMessageProps[]>([])
   const ws = useRef<WebSocket | null>(null)
   const router = useRouter()
+  const { getUser } = useAuth()
 
   const fetchRoom = useCallback(async (roomId: number) => {
     setLoading(true)
@@ -46,8 +50,35 @@ export default function Stream({ userName }: { userName: string }) {
     setLoading(false)
   }, [])
 
+  const fetchUser = useCallback(async () => {
+    setLoading(true)
+    console.log('loading user')
+
+    const getUserRes = await getUser()
+    if (!getUserRes) {
+      setLoading(false)
+      return
+    }
+
+    const response = await fetch(
+      `http://${process.env.EXPO_PUBLIC_SERVER_IP}/user/${getUserRes.userId}`,
+      {
+        method: 'GET',
+        headers: {
+          Accept: 'application/json',
+          'Content-Type': 'application/json',
+        },
+      },
+    )
+    const data = await response.json()
+
+    setUser(data.user)
+    setLoading(false)
+  }, [getUser])
+
   useEffect(() => {
     fetchRoom(Number(id))
+    fetchUser()
 
     ws.current = new WebSocket(
       `ws://${process.env.EXPO_PUBLIC_SERVER_IP}/ws/room/${id}`,
@@ -89,7 +120,7 @@ export default function Stream({ userName }: { userName: string }) {
     router.replace('/live')
   }
 
-  if (!room || loading) {
+  if (!room || !user || loading) {
     return (
       <View className='h-screen bg-zinc-950 flex items-center justify-center pt-20'>
         <ActivityIndicator size='large' color={'gold'} />
@@ -107,6 +138,7 @@ export default function Stream({ userName }: { userName: string }) {
       </View>
       <FlatList
         automaticallyAdjustKeyboardInsets={true}
+        keyboardShouldPersistTaps='always'
         data={messages}
         keyExtractor={(_, index) => index.toString()}
         renderItem={({ item }) => (
@@ -119,14 +151,14 @@ export default function Stream({ userName }: { userName: string }) {
         ListFooterComponent={
           <View className='flex flex-row items-center'>
             <TextInput
-              className='bg-zinc-900 color-white h-full px-4 flex-grow'
+              className='bg-zinc-900 color-white py-6 px-4 flex-grow'
               value={message}
               onChangeText={setMessage}
               placeholder='Type a message...'
             />
             <Pressable
-              className='px-4 bg-yellow-500 h-full flex justify-center'
-              onPress={() => sendMessage(userName, message)}
+              className='px-4 bg-yellow-500 py-6 flex justify-center'
+              onPress={() => sendMessage(user.username, message)}
             >
               <Text className='text-zinc-100 font-medium'>Send</Text>
             </Pressable>
@@ -145,7 +177,7 @@ type StreamMessageProps = {
 
 function StreamMessage({ userName, message, time }: StreamMessageProps) {
   return (
-    <View className='bg-zinc-900 w-full flex flex-col gap-y-2 mb-4 border-b border-zinc-600 p-4 rounded-lg'>
+    <View className='w-full flex flex-col gap-y-2 mb-4 p-4 rounded-lg'>
       <Text className='text-white'>{userName}</Text>
       <Text className='text-white'>{message}</Text>
       <Text className='text-white'>{new Date(time).toLocaleTimeString()}</Text>
