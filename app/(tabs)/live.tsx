@@ -1,5 +1,5 @@
 import { IconSymbol } from '@/components/ui/icon-symbol'
-import { Href, useRouter } from 'expo-router'
+import { useRouter } from 'expo-router'
 import React, { useCallback, useEffect, useState } from 'react'
 import { ActivityIndicator, FlatList, Pressable, Text, View } from 'react-native'
 import { useAuth } from '../../contexts/AuthContext'
@@ -39,7 +39,7 @@ const StreamCard = ({
 }) => {
   const router = useRouter()
   const handlePress = () => {
-    router.push(`/stream/${item.room.id}` as Href)
+    router.push(`/stream/${item.room.id}`)
   }
 
   return (
@@ -88,26 +88,26 @@ export default function LiveScreen() {
   const [streams, setStreams] = useState<Stream[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [repPoints, setRepPoints] = useState<number | null>(null)
+  const [isNavigating, setIsNavigating] = useState(false)
 
   const fetchStreams = useCallback(async (filter: FilterType) => {
-    setIsLoading(true)
-    const response = await fetch(
-      `http://${process.env.EXPO_PUBLIC_SERVER_IP}/rooms`,
-      {
-        method: 'GET',
-        headers: {
-          Accept: 'application/json',
-          'Content-Type': 'application/json',
+    try {
+      setIsLoading(true)
+      const response = await fetch(
+        `http://${process.env.EXPO_PUBLIC_SERVER_IP}/rooms`,
+        {
+          method: 'GET',
+          headers: {
+            Accept: 'application/json',
+            'Content-Type': 'application/json',
+          },
         },
-      },
-    )
-    const data = await response.json()
-    if (filter === 'following') {
-      setStreams(data.rooms)
-    } else {
-      setStreams(data.rooms)
+      )
+      const data = await response.json()
+      setStreams(Array.isArray(data?.rooms) ? data.rooms : [])
+    } finally {
+      setIsLoading(false)
     }
-    setIsLoading(false)
   }, [])
 
   useEffect(() => {
@@ -133,7 +133,8 @@ export default function LiveScreen() {
   const canGoLive = (repPoints ?? 0) >= 1000
 
   const handleGoLive = () => {
-    router.push('/go-live' as Href)
+    router.navigate('/(tabs)/streamerLive')
+    setTimeout(() => setIsNavigating(false), 500)
   }
 
   return (
@@ -144,7 +145,11 @@ export default function LiveScreen() {
           Live Streams
         </Text>
         {canGoLive && (
-          <Pressable onPress={handleGoLive} className='rounded-xl bg-blue-600 px-4 py-2 ml-auto'>
+          <Pressable
+            onPress={handleGoLive}
+            disabled={isNavigating}
+            className={`rounded-xl px-4 py-2 ml-auto ${isNavigating ? 'bg-blue-400' : 'bg-blue-600'}`}
+          >
             <Text className='text-white text-center font-semibold'>go live</Text>
           </Pressable>
         )}
